@@ -14,6 +14,10 @@ const handler = require("./lib/handler")("_callbacks", "_chunks");
 
 
 function Redis(host, port, pass){
+    if(!(this instanceof Redis)){
+        throw new Error("Redis不能被直接调用，请使用new调用");
+    }
+
     this._sock = null;
     this._callbacks = [];//回调队列
     this._host = host || "127.0.0.1";
