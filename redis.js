@@ -97,6 +97,7 @@ for(let x in extend){
             //如果当前链接已经断开
             if(this._sock.destroyed)
             {   
+                console.log("断开重连。。。")
                 //执行重链
                 this._init();
 
@@ -154,7 +155,8 @@ for(let x in extend){
             {   
                 //当需要授权,并没有授权时候
                 if (this._pass && !this._authorized)
-                {
+                {   
+                    console.log("需要授权");
                     return new Promise((resolve, reject)=>
                     {
                         //开始执行授权
