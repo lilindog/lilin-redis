@@ -156,7 +156,6 @@ for(let x in extend){
                 //当需要授权,并没有授权时候
                 if (this._pass && !this._authorized)
                 {   
-                    console.log("需要授权");
                     return new Promise((resolve, reject)=>
                     {
                         //开始执行授权
