@@ -34,7 +34,7 @@ Redis.prototype._handler = handler;
 Redis.prototype._init = function(){
     this._loading = true;
     this._sock && this._sock.destroy();
-    console.log("执行链接");
+    // console.log("执行链接");
     this._sock = net.createConnection({ port: this._port, host: this._host });
 
     this._sock.on("data", chunk=>{
@@ -42,7 +42,7 @@ Redis.prototype._init = function(){
     });
 
     this._sock.on("ready", ()=>{
-        console.log("sock做好准备");
+        // console.log("sock做好准备");
         this._callbacks2.forEach(f=>{
             f();
         });
@@ -95,7 +95,7 @@ for(let x in extend){
         //如果当前链接已经断开
         if(this._sock.destroyed)
         {   
-            console.log("断开重连。。。")
+            // console.log("断开重连。。。")
             //执行重链
             this._init();
 

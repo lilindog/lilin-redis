@@ -26,6 +26,13 @@ redis.get("key")
 
 ![图片加载失败](./img.jpg)
 
+
+## 简单测试
+
+*如图：*
+
+![图片加载失败](./GIF.gif)
+
 ---
 ## 相关参考资料
   * [RESP协议文档](https://redis.io/topics/protocol)
