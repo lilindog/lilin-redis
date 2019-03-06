@@ -89,106 +89,103 @@ Redis.prototype._init = function(){
 */
 for(let x in extend){
 
-    //用闭包保存循环时extend的key
-    !function(x){
-        //在原型上定义extend里对应名字的全新方法
-        Redis.prototype[x] = function(...args){            
+    //在原型上定义extend里对应名字的全新方法
+    Redis.prototype[x] = function(...args){            
 
-            //如果当前链接已经断开
-            if(this._sock.destroyed)
-            {   
-                console.log("断开重连。。。")
-                //执行重链
-                this._init();
+        //如果当前链接已经断开
+        if(this._sock.destroyed)
+        {   
+            console.log("断开重连。。。")
+            //执行重链
+            this._init();
 
-                return new Promise((resolve, reject)=>{
-                    //当需要授权,并没有授权时候
-                    if(this._pass && !this._authorized)
+            return new Promise((resolve, reject)=>{
+                //当需要授权,并没有授权时候
+                if(this._pass && !this._authorized)
+                {   
+                    //压入带授权逻辑的闭包到链接建立队列
+                    this._callbacks2.push(()=>
                     {   
-                        //压入带授权逻辑的闭包到链接建立队列
-                        this._callbacks2.push(()=>
+                        //执行授权
+                        extend.auth.call(this, this._pass)
+                        .then(()=>
                         {   
-                            //执行授权
-                            extend.auth.call(this, this._pass)
-                            .then(()=>
-                            {   
-                                //修改授权状态为成功
-                                this._authorized = true;
-                                //执行真正的方法
-                                extend[x].apply(this, args)
-                                .then((data)=>
-                                {
-                                    resolve(data);
-                                })
-                                .catch(err=>
-                                {
-                                    reject(err);
-                                });
+                            //修改授权状态为成功
+                            this._authorized = true;
+                            //执行真正的方法
+                            extend[x].apply(this, args)
+                            .then((data)=>
+                            {
+                                resolve(data);
                             })
                             .catch(err=>
                             {
                                 reject(err);
                             });
-                            
-                        });
-                    }
-                    //如果不需要授权或者说已经授权
-                    else
-                    {   
-                        //那么直接压入执行真正方法的闭包到链接建立队列
-                        this._callbacks2.push(()=>
-                        {   
-                            extend[x].apply(this, args)
-                            .then((data)=>{
-                                resolve(data);
-                            })
-                            .catch(err=>{
-                                reject(err);
-                            });
-                        });
-                    }
-                });
-
-            }
-            //如果sock链接没有断开
-            else
-            {   
-                //当需要授权,并没有授权时候
-                if (this._pass && !this._authorized)
-                {   
-                    return new Promise((resolve, reject)=>
-                    {
-                        //开始执行授权
-                        extend.auth.call(this, this._pass)
-                        .then(()=>
-                        {
-                            //授权成功修改授权状态为true
-                            this._authorized = true;
-                            //并执行真正的方法
-                            extend[x].apply(this, args)
-                                .then(data =>
-                                {
-                                    resolve(data);
-                                })
-                                .catch(err =>
-                                {
-                                    reject(err);
-                                });
                         })
                         .catch(err=>
                         {
                             reject(err);
                         });
+                        
                     });
                 }
-                //如果不需要授权或者说已经授权，那么直接执行真正的方法
+                //如果不需要授权或者说已经授权
                 else
-                {
-                    return extend[x].apply(this, args);
+                {   
+                    //那么直接压入执行真正方法的闭包到链接建立队列
+                    this._callbacks2.push(()=>
+                    {   
+                        extend[x].apply(this, args)
+                        .then((data)=>{
+                            resolve(data);
+                        })
+                        .catch(err=>{
+                            reject(err);
+                        });
+                    });
                 }
+            });
+
+        }
+        //如果sock链接没有断开
+        else
+        {   
+            //当需要授权,并没有授权时候
+            if (this._pass && !this._authorized)
+            {   
+                return new Promise((resolve, reject)=>
+                {
+                    //开始执行授权
+                    extend.auth.call(this, this._pass)
+                    .then(()=>
+                    {
+                        //授权成功修改授权状态为true
+                        this._authorized = true;
+                        //并执行真正的方法
+                        extend[x].apply(this, args)
+                            .then(data =>
+                            {
+                                resolve(data);
+                            })
+                            .catch(err =>
+                            {
+                                reject(err);
+                            });
+                    })
+                    .catch(err=>
+                    {
+                        reject(err);
+                    });
+                });
+            }
+            //如果不需要授权或者说已经授权，那么直接执行真正的方法
+            else
+            {
+                return extend[x].apply(this, args);
             }
         }
-    }(x);
+    }
 
 }
 
