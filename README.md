@@ -1,7 +1,5 @@
 # 简单的redis模块
 
-*自己学习使用，支持的命令在持续更新中。。。*
-
 ## api
 
 *api均返回promise*
@@ -11,10 +9,19 @@
 |auth|pass|校验授权(需要密码是才用，否则报错)|null|不建议使用，因实例化该类时如果传递pass参数，会自动校验|
 |set|key, val|设置键值|null|-|
 |get|key|获取指定键的值|val|-|
-|hset|key1,val1,key2,val2,...|批量设置键|null|-|
-|hget|key1, key2, ...|批量获取key|[val1, val2, ...]|-|
-
-*未完。。。*
+|expire|key,time|设置key多少时间后过期|1\|0|time参数为Number类型，以秒来计算|
+|mset|key1,val1,key2,val2,...|批量设置键|null|-|
+|mget|key1, key2, ...|批量获取key|[val1, val2, ...]|-|
+|hset|hash, field, val|设置hash字段|null|-|
+|hget|hash, field|获取hash键的值|val|-|
+|hmset|hash, field1, val1, ...|批量设置hash字段|null|-|
+|hmget|hash, field1,...|批量获取hash字段|[val1,val2,...]|-|
+|lpush|list, val1,...|向列表头压入数据|null|-|
+|rpush|list, val1,...|向列表压入数据|null|-|
+|lpop|list|移除并获得列表头第一个元素|val|-|
+|rpop|list|移除并获得列表最后一个元素|val|-|
+|lrange|list, start, end|获取列表指定索引范围的数据|[val1,val2,...]|如果省略第2、3位参数，则默认返回列表全部元素|
+*api在继续完善中。。。*
 
 ```javascript
 //简单示例
