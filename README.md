@@ -21,6 +21,7 @@
 |lpop|list|移除并获得列表头第一个元素|val|-|
 |rpop|list|移除并获得列表最后一个元素|val|-|
 |lrange|list, start, end|获取列表指定索引范围的数据|[val1,val2,...]|如果省略第2、3位参数，则默认返回列表全部元素|
+
 *api在继续完善中。。。*
 
 ```javascript
