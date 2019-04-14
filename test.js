@@ -14,6 +14,8 @@ let redis = new Redis("127.0.0.1", "6379", "8612");
         // console.log(await redis.lrange("task"));
         console.log(await redis.get("name"));
         console.log(await redis.get("age"));
+        console.log(await redis.get("aaa"));
+        console.log(await redis.get("bbb"));
 
         
 
