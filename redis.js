@@ -31,6 +31,7 @@ function Redis(host, port, pass){
     this._init();
 }
 Redis.prototype._handler = handler;
+let ii = 0;
 Redis.prototype._init = function(){
     this._loading = true;
     this._sock && this._sock.destroy();
@@ -71,6 +72,9 @@ Redis.prototype._init = function(){
     }
 
 }
+// for(let x in extend){
+//     Redis.prototype[x] = extend[x];
+// }
 /*
 * ---扩展api---
 *
