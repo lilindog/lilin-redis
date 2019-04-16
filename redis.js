@@ -1,14 +1,14 @@
 "use strict";
 
 /*
-* 目前仅仅支持get\set\hget\hset 这几个命令（不支持设置过期时间）
+* 目前仅仅支持get\set\hget\hset 这几个命令（暂不不支持设置过期时间）
 * 扩展redis命令请到extend文件下，并同时更新command文件下相对的命令构建方法
 * created by lilin on 2019/3/2
-* ??接下来，最好把命extend文件里方法下的socket是否链的判断逻辑放到该文件的扩展逻辑里边
+* last update 2019/04/16 8:40
 */ 
 
 
-const net = require("net")
+const net = require("net");
 const extend = require("./lib/extend")("_sock", "_callbacks");
 const handler = require("./lib/handler")("_callbacks", "_chunks");
 
@@ -72,9 +72,7 @@ Redis.prototype._init = function(){
     }
 
 }
-// for(let x in extend){
-//     Redis.prototype[x] = extend[x];
-// }
+
 /*
 * ---扩展api---
 *

@@ -5,10 +5,7 @@ let redis = new Redis("127.0.0.1", "6379", "8612");
 !async function(){
     try{
 
-        console.log(await redis.lrange("test"));
-        await del("9");
-        console.log(await redis.lrange("test"));
-    
+        console.log(await redis.lset("test", 0, "lilin"));
 
 
     }catch(err){
