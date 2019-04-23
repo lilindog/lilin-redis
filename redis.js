@@ -31,7 +31,7 @@ function Redis(host, port, pass){
     this._init();
 }
 Redis.prototype._handler = handler;
-let ii = 0;
+
 Redis.prototype._init = function(){
     this._loading = true;
     this._sock && this._sock.destroy();
@@ -51,9 +51,9 @@ Redis.prototype._init = function(){
     });
 
     this._sock.on("close", ()=>{
-        console.log("sock关闭");
+        console.log("lilin-redis底层socket关闭");
         this._authorized = false;
-        console.log(this._sock.destroyed);
+        isConnecting = false;
     });
 
     this._sock.on("error", err=>{
@@ -89,19 +89,27 @@ Redis.prototype._init = function(){
 *                             这个队列里的方法来自调用方法时压入的接受数据的回调，当redis数据响应的时候，会依次执行该队列里的回调。
 *
 */
-for(let x in extend){
+let isConnecting = false;//测试；是否处于正在连接中
+for(let x in extend)
+{
 
     //在原型上定义extend里对应名字的全新方法
-    Redis.prototype[x] = function(...args){            
+    Redis.prototype[x] = function(...args)
+    {            
 
         //如果当前链接已经断开
         if(this._sock.destroyed)
         {   
             // console.log("断开重连。。。")
             //执行重链
-            this._init();
+            if(!isConnecting)
+            {   
+                isConnecting = true;
+                this._init();
+            }
 
-            return new Promise((resolve, reject)=>{
+            return new Promise((resolve, reject)=>
+            {
                 //当需要授权,并没有授权时候
                 if(this._pass && !this._authorized)
                 {   
