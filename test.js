@@ -11,7 +11,7 @@ let redis = new Redis("127.0.0.1", "6379", "8612");
         // 456
         // 789
         // `);
-        let res = await redis.lrange("test1");
+        let res = await redis.lrange("task3");
         console.log(res);
         console.log(res[0]);
         // console.log("getkey1返回为: " + await redis.get("key1"));
