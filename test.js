@@ -5,16 +5,14 @@ let redis = new Redis("127.0.0.1", "6379", "8612");
 !async function(){
     try{
 
-        // console.log(await redis.lset("test", 0, "lilin"));
-        // await redis.set("key1", `
-        // 123
-        // 456
-        // 789
-        // `);
-        let res = await redis.lrange("task3");
-        console.log(res);
-        console.log(res[0]);
-        // console.log("getkey1返回为: " + await redis.get("key1"));
+
+        let res = await redis.auth("8612");
+        // console.log(res);
+        await redis.lpush("task", `
+        123
+        234
+        `);
+        console.log(await redis.lrange("task"));
 
 
     }catch(err){

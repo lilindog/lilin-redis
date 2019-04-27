@@ -10,7 +10,7 @@
 
 const net = require("net");
 const extend = require("./lib/extend")("_sock", "_callbacks");
-const handler = require("./lib/handler")("_callbacks", "_chunks");
+const handler = require("./lib/parser")("_callbacks", "_chunks");
 
 
 function Redis(host, port, pass){
@@ -25,7 +25,7 @@ function Redis(host, port, pass){
     this._pass = pass || "";
     this._authorized = false;
     this._callbacks2 = [];//执行链接时候的回调存放队列
-    this._chunks = "";
+    this._chunks = Buffer.from([]);
 
     //执行初始化
     this._init();
@@ -198,6 +198,5 @@ for(let x in extend)
     }
 
 }
-
 
 module.exports = Redis;
