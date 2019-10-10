@@ -10,7 +10,9 @@
 
 const net = require("net");
 const extend = require("./lib/extend")("_sock", "_callbacks");
-const handler = require("./lib/parser")("_callbacks", "_chunks");
+const Parser = require("./lib/resp-parser");
+const parser = new Parser();
+parser.DEBUG = true;
 
 
 function Redis(host, port, pass){
@@ -27,10 +29,17 @@ function Redis(host, port, pass){
     this._callbacks2 = [];//执行链接时候的回调存放队列
     this._chunks = Buffer.from([]);
 
+    //部署parser
+    parser.on("data", data => {
+        this._callbacks.pop()(data);
+    });
+    parser.on("error", err => {
+        throw err;
+    });
+
     //执行初始化
     this._init();
 }
-Redis.prototype._handler = handler;
 
 Redis.prototype._init = function(){
     this._loading = true;
@@ -39,7 +48,7 @@ Redis.prototype._init = function(){
     this._sock = net.createConnection({ port: this._port, host: this._host });
 
     this._sock.on("data", chunk=>{
-        this._handler(chunk);
+        parser.parse(chunk);
     });
 
     this._sock.on("ready", ()=>{

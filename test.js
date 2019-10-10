@@ -1,17 +1,10 @@
 const Redis = require("./redis");
 
-let redis = new Redis("127.0.0.1", "6379", "8612");
+let redis = new Redis("127.0.0.1", "6379");
 
 !async function(){
     try{
-
-
-        let res = await redis.auth("8612");
-        // console.log(res);
-        await redis.lpush("task", `
-        123
-        234
-        `);
+        console.log(await redis.lpush("task", `12345`));
         console.log(await redis.lrange("task"));
 
 
