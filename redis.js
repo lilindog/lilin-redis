@@ -28,6 +28,7 @@ function Redis(host, port, pass){
     this._authorized = false;
     this._callbacks2 = [];//执行链接时候的回调存放队列
     this._chunks = Buffer.from([]);
+    this._isConnecting = false; //是否正在连接中
 
     //部署parser
     parser.on("data", data => {
@@ -62,7 +63,7 @@ Redis.prototype._init = function(){
     this._sock.on("close", ()=>{
         console.log("lilin-redis底层socket关闭");
         this._authorized = false;
-        isConnecting = false;
+        this._isConnecting = false;
     });
 
     this._sock.on("error", err=>{
@@ -99,6 +100,57 @@ Redis.prototype._init = function(){
 *
 */
 let isConnecting = false;//测试；是否处于正在连接中
+
+Object.keys(extend).forEach(key => {
+    const func = extend[key];
+    Redis.prototype[key] = function (...args) {
+        //最后一个参数是否是回调函数
+        const hasCb = (typeof args[args.length - 1] === "function") ? true : false;
+        /**
+         * 传递了回调函数不用返回promise 
+         */
+        if (hasCb) {
+            /**
+             * 未连接并且不再进行连接中，那么直接把数组 
+             */
+            if (this._sock.destroyed) {
+                if (!this._isConnecting) {
+                    this._isConnecting = true;
+                    this._init();
+                }
+                return new Promise((resolve, reject) => {
+                    if (this._pass && !this._authorized) {
+                        this._callbacks2.push(async () => {
+                            try {
+                                await extend.auth.call(this, this._pass);
+                                let res = await func.apply(this, ...args);
+                                resolve(res);
+                            } catch(err) {
+                                reject(err);
+                            }
+                        });
+                    } else {
+
+                    }
+                });
+            } 
+            /**
+             * 已连接状态下
+             */
+            else {
+
+            }
+        } 
+        /**
+         * 没有传递回调函数一律返回promise 
+         */
+        else {
+
+        }
+    }
+});
+
+
 for(let x in extend)
 {
 
