@@ -46,7 +46,7 @@ Redis.prototype._init = function(){
     this._loading = true;
     this._sock && this._sock.destroy();
     // console.log("执行链接");
-    this._sock = net.createConnection({ port: this._port, host: this._host });
+    this._sock = net.createConnection({ host: this._host, port: this._port});
 
     this._sock.on("data", chunk=>{
         parser.parse(chunk);
@@ -99,8 +99,6 @@ Redis.prototype._init = function(){
 *                             这个队列里的方法来自调用方法时压入的接受数据的回调，当redis数据响应的时候，会依次执行该队列里的回调。
 *
 */
-let isConnecting = false;//测试；是否处于正在连接中
-
 Object.keys(extend).forEach(key => {
     const func = extend[key];
     Redis.prototype[key] = function (...args) {
@@ -110,6 +108,12 @@ Object.keys(extend).forEach(key => {
          * 传递了回调函数不用返回promise 
          */
         if (hasCb) {
+            
+        } 
+        /**
+         * 没有传递回调函数一律返回promise 
+         */
+        else {
             /**
              * 未连接并且不再进行连接中，那么直接把数组 
              */
@@ -130,7 +134,14 @@ Object.keys(extend).forEach(key => {
                             }
                         });
                     } else {
-
+                        this._callbacks2.push(async () => {
+                            try {
+                                let res = await func.apply(this, args);
+                                resolve(res);
+                            } catch(err) {
+                                reject(err);
+                            }
+                        });
                     }
                 });
             } 
@@ -138,126 +149,17 @@ Object.keys(extend).forEach(key => {
              * 已连接状态下
              */
             else {
-
+                return new Promise(async (resolve, reject) => {
+                    try {
+                        let res = await func.apply(this, args);
+                        resolve(res);
+                    } catch(err) {
+                        reject(err);
+                    }
+                });
             }
-        } 
-        /**
-         * 没有传递回调函数一律返回promise 
-         */
-        else {
-
         }
     }
 });
-
-
-for(let x in extend)
-{
-
-    //在原型上定义extend里对应名字的全新方法
-    Redis.prototype[x] = function(...args)
-    {            
-
-        //如果当前链接已经断开
-        if(this._sock.destroyed)
-        {   
-            // console.log("断开重连。。。")
-            //执行重链
-            if(!isConnecting)
-            {   
-                isConnecting = true;
-                this._init();
-            }
-
-            return new Promise((resolve, reject)=>
-            {
-                //当需要授权,并没有授权时候
-                if(this._pass && !this._authorized)
-                {   
-                    //压入带授权逻辑的闭包到链接建立队列
-                    this._callbacks2.push(()=>
-                    {   
-                        //执行授权
-                        extend.auth.call(this, this._pass)
-                        .then(()=>
-                        {   
-                            //修改授权状态为成功
-                            this._authorized = true;
-                            //执行真正的方法
-                            extend[x].apply(this, args)
-                            .then((data)=>
-                            {
-                                resolve(data);
-                            })
-                            .catch(err=>
-                            {
-                                reject(err);
-                            });
-                        })
-                        .catch(err=>
-                        {
-                            reject(err);
-                        });
-                        
-                    });
-                }
-                //如果不需要授权或者说已经授权
-                else
-                {   
-                    //那么直接压入执行真正方法的闭包到链接建立队列
-                    this._callbacks2.push(()=>
-                    {   
-                        extend[x].apply(this, args)
-                        .then((data)=>{
-                            resolve(data);
-                        })
-                        .catch(err=>{
-                            reject(err);
-                        });
-                    });
-                }
-            });
-
-        }
-        //如果sock链接没有断开
-        else
-        {   
-            //当需要授权,并没有授权时候
-            if (this._pass && !this._authorized)
-            {   
-                return new Promise((resolve, reject)=>
-                {
-                    //开始执行授权
-                    extend.auth.call(this, this._pass)
-                    .then(()=>
-                    {
-                        //授权成功修改授权状态为true
-                        this._authorized = true;
-                        //并执行真正的方法
-                        extend[x].apply(this, args)
-                            .then(data =>
-                            {
-                                resolve(data);
-                            })
-                            .catch(err =>
-                            {
-                                reject(err);
-                            });
-                    })
-                    .catch(err=>
-                    {
-                        reject(err);
-                    });
-                });
-            }
-            //如果不需要授权或者说已经授权，那么直接执行真正的方法
-            else
-            {
-                return extend[x].apply(this, args);
-            }
-        }
-    }
-
-}
 
 module.exports = Redis;
