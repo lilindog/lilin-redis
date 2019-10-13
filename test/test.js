@@ -1,4 +1,4 @@
-const Redis = require("./redis");
+const Redis = require("../redis");
 
 let redis = new Redis("127.0.0.1", "6379");
 
@@ -6,6 +6,8 @@ let redis = new Redis("127.0.0.1", "6379");
     try{
         console.log(await redis.lpush("task", `12345`));
         console.log(await redis.lrange("task"));
+
+        console.log(123);
 
 
     }catch(err){
