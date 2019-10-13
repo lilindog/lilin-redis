@@ -1,19 +1,14 @@
-"use strict";
-
 /*
-* 目前仅仅支持get\set\hget\hset 这几个命令（暂不不支持设置过期时间）
-* 扩展redis命令请到extend文件下，并同时更新command文件下相对的命令构建方法
-* created by lilin on 2019/3/2
-* last update 2019/04/16 8:40
-*/ 
-
+ * @Author: lilindog 
+ * @Date: 2019-10-14 01:19:47 
+ * @Last Modified by: lilindog
+ * @Last Modified time: 2019-10-14 01:20:36
+ */
+"use strict";
 
 const net = require("net");
 const extend = require("./lib/extend")("_sock", "_callbacks");
 const Parser = require("./lib/resp-parser");
-const parser = new Parser();
-parser.DEBUG = true;
-
 
 function Redis(host, port, pass){
     if(!(this instanceof Redis)){
@@ -31,10 +26,12 @@ function Redis(host, port, pass){
     this._isConnecting = false; //是否正在连接中
 
     //部署parser
-    parser.on("data", data => {
+    this._Parser = new Parser();
+    this._Parser.DEBUG = true;
+    this._Parser.on("data", data => {
         this._callbacks.pop()(data);
     });
-    parser.on("error", err => {
+    this._Parser.on("error", err => {
         throw err;
     });
 
@@ -101,14 +98,74 @@ Redis.prototype._init = function(){
 */
 Object.keys(extend).forEach(key => {
     const func = extend[key];
-    Redis.prototype[key] = function (...args) {
+    Redis.prototype[key] = async function (...args) {
         //最后一个参数是否是回调函数
         const hasCb = (typeof args[args.length - 1] === "function") ? true : false;
         /**
          * 传递了回调函数不用返回promise 
          */
         if (hasCb) {
-            
+            const cb = args.pop();
+            /**
+             * 连接断开时 
+             */
+            if (this._sock.destroyed) {
+                if (!this._isConnecting) {
+                    this._isConnecting = true;
+                    this._init();
+                }
+                if (this._pass && !this._authorized) {
+                    console.log("--> a1");
+                    this._callbacks2.push(async () => {
+                        try {   
+                            let res = await extend.auth.call(this, this._pass);
+                            if (~res.indexOf("ERR" || res.indexOf("OK") === -1)) {
+                                throw res;
+                            }
+                            res = await func.apply(this, args);
+                            cb(null, res);
+                        } catch(err) {
+                            cb(err);
+                        }
+                    });
+                } else {
+                    console.log("--> a2");
+                    this._callbacks2.push(async () => {
+                        try {
+                            let res = await func.apply(this, args);
+                            cb(null, res);
+                        } catch(err) {
+                            cb(err);
+                        }
+                    });
+                }
+            } 
+            /**
+             * 连接正常时 
+             */
+            else {
+                if (this._pass && !this._authorized){
+                    console.log("--> a3");
+                    try {
+                        let res = await extend.auth.call(this, this._pass);
+                        if (~res.indexOf("ERR" || res.indexOf("OK") === -1)) {
+                            throw res;
+                        }
+                        res = await func.apply(this, args);
+                        cb(null, res);
+                    } catch(err) {
+                        cb(err);
+                    }
+                } else {
+                    console.log("--> a4");
+                    try {
+                        let res = await func.apply(this, args);
+                        cb(null, res);
+                    } catch(err) {
+                        cb(err);
+                    }
+                }
+            }
         } 
         /**
          * 没有传递回调函数一律返回promise 
@@ -124,16 +181,24 @@ Object.keys(extend).forEach(key => {
                 }
                 return new Promise((resolve, reject) => {
                     if (this._pass && !this._authorized) {
+                        console.log("--> b1");
                         this._callbacks2.push(async () => {
                             try {
-                                await extend.auth.call(this, this._pass);
-                                let res = await func.apply(this, ...args);
+                                let res = await extend.auth.call(this, this._pass);
+                                console.log(res);
+                                if (~res.indexOf("ERR" || res.indexOf("OK") === -1)) {
+                                    reject(res);
+                                    return;
+                                }
+                                this._authorized = true;
+                                res = await func.apply(this, args);
                                 resolve(res);
                             } catch(err) {
                                 reject(err);
                             }
                         });
                     } else {
+                        console.log("--> b2");
                         this._callbacks2.push(async () => {
                             try {
                                 let res = await func.apply(this, args);
@@ -149,14 +214,29 @@ Object.keys(extend).forEach(key => {
              * 已连接状态下
              */
             else {
-                return new Promise(async (resolve, reject) => {
-                    try {
-                        let res = await func.apply(this, args);
+                if (this._pass && !this._authorized) {
+                    console.log("--> b3");
+                    return new Promise(async (resolve, reject) => {
+                        let res = await extend.auth.call(this, this._pass);
+                        if (~res.indexOf("ERR" || res.indexOf("OK") === -1)) {
+                            reject(res);
+                            return;
+                        }
+                        this._authorized = true;
+                        res = await func.apply(this, args);
                         resolve(res);
-                    } catch(err) {
-                        reject(err);
-                    }
-                });
+                    });
+                } else {
+                    console.log("--> b4");
+                    return new Promise(async (resolve, reject) => {
+                        try {
+                            let res = await func.apply(this, args);
+                            resolve(res);
+                        } catch(err) {
+                            reject(err);
+                        }
+                    });
+                }
             }
         }
     }
