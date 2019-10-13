@@ -2,7 +2,7 @@
  * @Author: lilindog 
  * @Date: 2019-10-14 01:19:47 
  * @Last Modified by: lilindog
- * @Last Modified time: 2019-10-14 01:20:36
+ * @Last Modified time: 2019-10-14 01:39:56
  */
 "use strict";
 
@@ -15,6 +15,7 @@ function Redis(host, port, pass){
         throw new Error("Redis不能被直接调用，请使用new调用");
     }
 
+    this.DEBUG = true;
     this._sock = null;
     this._callbacks = [];//回调队列
     this._host = host || "127.0.0.1";
@@ -46,7 +47,7 @@ Redis.prototype._init = function(){
     this._sock = net.createConnection({ host: this._host, port: this._port});
 
     this._sock.on("data", chunk=>{
-        parser.parse(chunk);
+        this._Parser.parse(chunk);
     });
 
     this._sock.on("ready", ()=>{
@@ -58,7 +59,7 @@ Redis.prototype._init = function(){
     });
 
     this._sock.on("close", ()=>{
-        console.log("lilin-redis底层socket关闭");
+        this.DEBUG && console.log("lilin-redis底层socket关闭");
         this._authorized = false;
         this._isConnecting = false;
     });
@@ -115,7 +116,7 @@ Object.keys(extend).forEach(key => {
                     this._init();
                 }
                 if (this._pass && !this._authorized) {
-                    console.log("--> a1");
+                    this.DEBUG && console.log("--> a1");
                     this._callbacks2.push(async () => {
                         try {   
                             let res = await extend.auth.call(this, this._pass);
@@ -129,7 +130,7 @@ Object.keys(extend).forEach(key => {
                         }
                     });
                 } else {
-                    console.log("--> a2");
+                    this.DEBUG && console.log("--> a2");
                     this._callbacks2.push(async () => {
                         try {
                             let res = await func.apply(this, args);
@@ -145,7 +146,7 @@ Object.keys(extend).forEach(key => {
              */
             else {
                 if (this._pass && !this._authorized){
-                    console.log("--> a3");
+                    this.DEBUG && console.log("--> a3");
                     try {
                         let res = await extend.auth.call(this, this._pass);
                         if (~res.indexOf("ERR" || res.indexOf("OK") === -1)) {
@@ -157,7 +158,7 @@ Object.keys(extend).forEach(key => {
                         cb(err);
                     }
                 } else {
-                    console.log("--> a4");
+                    this.DEBUG && console.log("--> a4");
                     try {
                         let res = await func.apply(this, args);
                         cb(null, res);
@@ -181,11 +182,11 @@ Object.keys(extend).forEach(key => {
                 }
                 return new Promise((resolve, reject) => {
                     if (this._pass && !this._authorized) {
-                        console.log("--> b1");
+                        this.DEBUG && console.log("--> b1");
                         this._callbacks2.push(async () => {
                             try {
                                 let res = await extend.auth.call(this, this._pass);
-                                console.log(res);
+                                this.DEBUG && console.log(res);
                                 if (~res.indexOf("ERR" || res.indexOf("OK") === -1)) {
                                     reject(res);
                                     return;
@@ -198,7 +199,7 @@ Object.keys(extend).forEach(key => {
                             }
                         });
                     } else {
-                        console.log("--> b2");
+                        this.DEBUG && console.log("--> b2");
                         this._callbacks2.push(async () => {
                             try {
                                 let res = await func.apply(this, args);
@@ -215,7 +216,7 @@ Object.keys(extend).forEach(key => {
              */
             else {
                 if (this._pass && !this._authorized) {
-                    console.log("--> b3");
+                    this.DEBUG && console.log("--> b3");
                     return new Promise(async (resolve, reject) => {
                         let res = await extend.auth.call(this, this._pass);
                         if (~res.indexOf("ERR" || res.indexOf("OK") === -1)) {
@@ -227,7 +228,7 @@ Object.keys(extend).forEach(key => {
                         resolve(res);
                     });
                 } else {
-                    console.log("--> b4");
+                    this.DEBUG && console.log("--> b4");
                     return new Promise(async (resolve, reject) => {
                         try {
                             let res = await func.apply(this, args);
