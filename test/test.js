@@ -5,12 +5,8 @@ redis.DEBUG = false;
 
 !async function(){
     try{
-        console.log(await redis.lpush("task", `12345`));
-        console.log(await redis.lrange("task"));
 
-        setTimeout(async () => {
-            console.log(await redis.lpush("task", `12345`));
-        }, 10000);
+        console.log(await redis.hvals("h1"));
 
     }catch(err){
         console.log("!!!")
