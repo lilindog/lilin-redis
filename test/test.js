@@ -6,7 +6,7 @@ redis.DEBUG = false;
 !async function(){
     try{
 
-        console.log(await redis.lset("l1", 4, "lilin222"));
+        console.log(await redis.lrange("ttt", 0, -1));
 
     }catch(err){
         console.log("!!!")
