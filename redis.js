@@ -2,15 +2,18 @@
  * @Author: lilindog 
  * @Date: 2019-10-14 01:19:47 
  * @Last Modified by: lilindog
- * @Last Modified time: 2019-10-14 01:39:56
+ * @Last Modified time: 2019-10-19 13:37:02
  */
 "use strict";
 
 const net = require("net");
 const extend = require("./lib/extend")("_sock", "_callbacks");
 const Parser = require("./lib/resp-parser");
+const {EventEmitter: Emitter} = require("events");
 
 function Redis(host, port, pass){
+    Emitter.call(this);
+
     if(!(this instanceof Redis)){
         throw new Error("Redis不能被直接调用，请使用new调用");
     }
@@ -28,17 +31,23 @@ function Redis(host, port, pass){
 
     //部署parser
     this._Parser = new Parser();
-    this._Parser.DEBUG = true;
+    this._Parser.DEBUG = false;
     this._Parser.on("data", data => {
         this._callbacks.pop()(data);
     });
+    this._Parser.on("warn", info => {
+        this.emit("warn", info);
+    });
     this._Parser.on("error", err => {
-        throw err;
+        this.emit("error", err);
     });
 
     //执行初始化
     this._init();
 }
+
+Redis.prototype = new Emitter();
+Redis.prototype.constructor = Redis;
 
 Redis.prototype._init = function(){
     this._loading = true;
