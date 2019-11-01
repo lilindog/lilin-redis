@@ -1,4 +1,4 @@
-const Redis = require("../redis");
+const Redis = require("../index");
 const fs = require("fs");
 
 let redis = new Redis("127.0.0.1", "6379");
