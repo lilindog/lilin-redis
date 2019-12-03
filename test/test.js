@@ -13,9 +13,8 @@ redis.on("error", error => {
 
 !async function(){
     try {
-        console.log(await redis.hmget("n哈", "你", "lilin"));
+        console.log(await redis.hdel("t1", "f1"));
     } catch(err) {
         console.log(err);
     }
-
 }();
