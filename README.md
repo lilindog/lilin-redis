@@ -15,11 +15,13 @@
 |del|key|删除指定的key|1\|0||
 |exists|key|检查指定的key是否存在| 1\|0 ||
 |set|key, val|设置键值|null|-|
+|setex|key, time, val|设置带过期时间的键值|1\|0|-|
 |get|key|获取指定键的值|val|-|
 |mset|key1,val1,key2,val2,...|批量设置键|null|-|
 |mget|key1, key2, ...|批量获取key|[val1, val2, ...]|-|
 |hset|hash, field, val|设置hash字段|null|-|
 |hget|hash, field|获取hash键的值|val|-|
+|hdel|hash, field|删除hash表中的字段|1\|0|-|
 |hmset|hash, field1, val1, ...|批量设置hash字段|null|-|
 |hmget|hash, field1,...|批量获取hash字段|[val1,val2,...]|-|
 |hkeys|hash|获取哈希表中所有的key|[key1, key2, ...]||
