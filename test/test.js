@@ -13,7 +13,7 @@ redis.on("error", error => {
 
 !async function(){
     try {
-        console.log(await redis.setex("test", 5, "lilin"));
+        console.log(await redis.hmget("n哈", "你", "lilin"));
     } catch(err) {
         console.log(err);
     }
