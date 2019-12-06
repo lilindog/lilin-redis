@@ -33,7 +33,7 @@ function Redis(host, port, pass){
     this._Parser = new Parser();
     this._Parser.DEBUG = false;
     this._Parser.on("data", data => {
-        this._callbacks.pop()(data);
+        this._callbacks.shift()(data);
     });
     this._Parser.on("warn", info => {
         this.emit("warn", info);
