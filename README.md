@@ -1,5 +1,7 @@
 # redis客户端
 
+> 安装 npm install --save git+https://github.com/lilindog/lilin-redis#release
+
 *最近更新内容*<br>
 
 * ### 有更完善的resp解析；解析器用递归重写，支持无限层级RESP数组嵌套
